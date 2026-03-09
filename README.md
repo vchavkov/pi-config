@@ -81,7 +81,6 @@ Loaded on-demand when the context matches.
 | **answer.ts** | `/answer` command + `Ctrl+.` — extracts questions into interactive Q&A UI |
 | **branch.ts** | Branch management utilities |
 | **claude-tool/** | `claude` tool — invoke Claude Code for web research, autonomous tasks. Streams results live |
-| **context-filter/** | `.pi/.context` file for controlling system prompt content |
 | **cost.ts** | `/cost` command — API cost summary across sessions and models |
 | **execute-command.ts** | `execute_command` tool — lets the agent self-invoke `/answer`, `/reload`, etc. |
 | **ghostty.ts** | Ghostty terminal title + progress bar integration |
