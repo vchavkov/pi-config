@@ -6,14 +6,25 @@
   "packages": [
     "git:github.com/HazAT/pi-subagents",
     "git:github.com/nicobailon/pi-mcp-adapter",
-    "git:github.com/HazAT/pi-smart-sessions",
-    "git:github.com/HazAT/pi-parallel",
-    "git:github.com/sasha-computer/pi-cmux",
+    {
+      "source": "git:github.com/HazAT/pi-smart-sessions",
+      "extensions": [
+        "-extensions/smart-sessions.ts"
+      ]
+    },
+    {
+      "source": "git:github.com/HazAT/pi-parallel",
+      "extensions": [
+        "-extension/index.ts"
+      ]
+    },
     "git:github.com/pasky/chrome-cdp-skill",
     "git:github.com/HazAT/glimpse"
   ],
   "hideThinkingBlock": false,
   "extensions": [
-    "+extensions/ghostty.ts"
+    "+extensions/cmux/index.ts",
+    "+extensions/ghostty.ts",
+    "+extensions/claude-tool/index.ts"
   ]
 }
