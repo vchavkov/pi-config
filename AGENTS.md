@@ -221,7 +221,7 @@ panel_agent({
   name: "🧠 Planner",
   interactive: true,
   tools: "read,bash,edit,write,todo,write_artifact",
-  extensions: "~/.pi/agent/extensions/session-artifacts.ts,~/.pi/agent/extensions/todos.ts",
+  extensions: "~/.pi/agent/extensions/session-artifacts.ts,~/.pi/agent/extensions/todos.ts,~/.pi/agent/extensions/execute-command.ts,~/.pi/agent/extensions/answer.ts",
   systemPrompt: "You are the Planner. Clarify requirements, explore approaches, write the plan with write_artifact, create todos, and summarize.",
   task: "Plan: [description]. Context: [relevant info]"
 })
