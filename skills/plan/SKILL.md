@@ -49,7 +49,7 @@ Spend 30–60 seconds. The goal is to give the planner useful context — not to
 
 ```typescript
 panel_agent({
-  name: "🔍 Scout",
+  name: "Scout",
   agent: "scout",
   interactive: false,
   extensions: "~/.pi/agent/extensions/session-artifacts.ts,~/.pi/agent/extensions/todos.ts",
@@ -67,7 +67,7 @@ Spawn the interactive planner. The `planner` skill contains the full brainstormi
 
 ```typescript
 panel_agent({
-  name: "🧠 Planner",
+  name: "Planner",
   interactive: true,
   tools: "read,bash,edit,write,todo,write_artifact",
   skills: "planner",
@@ -135,7 +135,7 @@ subagent({ agent: "worker", task: `Implement TODO-yyyy. ...` })
 
 ```typescript
 panel_agent({
-  name: "⚡ Worker",
+  name: "Worker",
   agent: "worker",
   interactive: false,
   extensions: "~/.pi/agent/extensions/session-artifacts.ts,~/.pi/agent/extensions/todos.ts",
@@ -156,7 +156,7 @@ After all todos are complete:
 subagent({ agent: "reviewer", task: "Review the feature branch against main. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md" })
 
 // Or using panel agent (visible)
-panel_agent({ name: "🔎 Reviewer", agent: "reviewer", interactive: false, extensions: "~/.pi/agent/extensions/session-artifacts.ts", task: "Review the feature branch against main. Plan: ..." })
+panel_agent({ name: "Reviewer", agent: "reviewer", interactive: false, extensions: "~/.pi/agent/extensions/session-artifacts.ts", task: "Review the feature branch against main. Plan: ..." })
 ```
 
 Triage findings:

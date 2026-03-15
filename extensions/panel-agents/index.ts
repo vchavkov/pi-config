@@ -316,7 +316,7 @@ export default function panelAgentsExtension(pi: ExtensionAPI) {
 
     renderCall(args, theme) {
       const interactive = args.interactive !== false;
-      const icon = interactive ? "🧠" : "⚡";
+      const icon = interactive ? "▸" : "▹";
       const mode = interactive ? "interactive session" : "autonomous";
       const text =
         `${icon} ` +
@@ -337,7 +337,7 @@ export default function panelAgentsExtension(pi: ExtensionAPI) {
           ? formatElapsed(Math.floor((Date.now() - startTime) / 1000))
           : "running…";
 
-        const icon = interactive ? "🧠" : "⚡";
+        const icon = interactive ? "▸" : "▹";
         let text =
           `${icon} ` +
           theme.fg("toolTitle", theme.bold(name)) +

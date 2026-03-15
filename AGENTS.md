@@ -211,14 +211,14 @@ The `agent` parameter loads defaults from `~/.pi/agent/agents/<name>.md` — sam
 
 ```typescript
 // Use existing agent definitions — same configs as subagents, full transparency
-panel_agent({ name: "🔍 Scout", agent: "scout", interactive: false, extensions: "~/.pi/agent/extensions/session-artifacts.ts,~/.pi/agent/extensions/todos.ts", task: "Analyze the codebase..." })
-panel_agent({ name: "⚡ Worker", agent: "worker", interactive: false, extensions: "~/.pi/agent/extensions/session-artifacts.ts,~/.pi/agent/extensions/todos.ts", task: "Implement TODO-xxxx..." })
-panel_agent({ name: "🔎 Reviewer", agent: "reviewer", interactive: false, extensions: "~/.pi/agent/extensions/session-artifacts.ts", task: "Review feature branch..." })
-panel_agent({ name: "🔬 Researcher", agent: "researcher", interactive: false, extensions: "~/.pi/agent/extensions/session-artifacts.ts", task: "Research [topic]..." })
+panel_agent({ name: "Scout", agent: "scout", interactive: false, extensions: "~/.pi/agent/extensions/session-artifacts.ts,~/.pi/agent/extensions/todos.ts", task: "Analyze the codebase..." })
+panel_agent({ name: "Worker", agent: "worker", interactive: false, extensions: "~/.pi/agent/extensions/session-artifacts.ts,~/.pi/agent/extensions/todos.ts", task: "Implement TODO-xxxx..." })
+panel_agent({ name: "Reviewer", agent: "reviewer", interactive: false, extensions: "~/.pi/agent/extensions/session-artifacts.ts", task: "Review feature branch..." })
+panel_agent({ name: "Researcher", agent: "researcher", interactive: false, extensions: "~/.pi/agent/extensions/session-artifacts.ts", task: "Research [topic]..." })
 
 // Planner — interactive, no predefined agent file, custom role
 panel_agent({
-  name: "🧠 Planner",
+  name: "Planner",
   interactive: true,
   tools: "read,bash,edit,write,todo,write_artifact",
   extensions: "~/.pi/agent/extensions/session-artifacts.ts,~/.pi/agent/extensions/todos.ts,~/.pi/agent/extensions/execute-command.ts,~/.pi/agent/extensions/answer.ts",
@@ -227,7 +227,7 @@ panel_agent({
 })
 
 // Override agent defaults when needed
-panel_agent({ name: "⚡ Worker", agent: "worker", model: "anthropic/claude-haiku-4-5", task: "Quick fix..." })
+panel_agent({ name: "Worker", agent: "worker", model: "anthropic/claude-haiku-4-5", task: "Quick fix..." })
 ```
 
 **Required extensions by tool:**
