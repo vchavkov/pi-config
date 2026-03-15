@@ -91,16 +91,21 @@ export default function panelAgentsExtension(pi: ExtensionAPI) {
         // Wait for surface to initialize
         await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
-        // Build system prompt
+        // Build system prompt — must be VERY explicit so the agent doesn't get confused
+        // by seeing the full session history (including the tool call that spawned it)
+        const preamble =
+          "=== IMPORTANT: YOU ARE A SUB-AGENT SESSION ===\n" +
+          "You were spawned by the main session's panel_agent tool into a dedicated cmux panel.\n" +
+          "The conversation history you see is CONTEXT from the parent session — do NOT continue it.\n" +
+          "You are starting fresh with the task below. Focus on YOUR task, not the parent conversation.\n" +
+          "You only have built-in tools (read, bash, edit, write). Do NOT call panel_agent, subagent, or other extension tools.\n" +
+          `${interactive ? "The user will interact with you in this panel. When done, they will exit with Ctrl+D." : "Complete your task and provide a summary."}\n` +
+          "=== END PREAMBLE ===";
         const summaryInstruction =
           "Your FINAL message should be a clear summary of what you accomplished.";
-        const toolWarning =
-          "You are a sub-agent session. You only have the standard built-in tools (read, bash, edit, write). " +
-          "Do NOT attempt to call extension tools like panel_agent, subagent, or any other tools you may see " +
-          "in the conversation history — they are not available in this session.";
         const fullSystemPrompt = params.systemPrompt
-          ? `${params.systemPrompt}\n\n${toolWarning}\n\n${summaryInstruction}`
-          : `${toolWarning}\n\n${summaryInstruction}`;
+          ? `${preamble}\n\n${params.systemPrompt}\n\n${summaryInstruction}`
+          : `${preamble}\n\n${summaryInstruction}`;
 
         // Build pi command
         const parts: string[] = ["pi"];
