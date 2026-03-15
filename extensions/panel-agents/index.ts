@@ -2,7 +2,8 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
 import { Text } from "@mariozechner/pi-tui";
 import { dirname, join } from "node:path";
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync, statSync, readFileSync, existsSync } from "node:fs";
+import { homedir } from "node:os";
 import {
   isCmuxAvailable,
   createSurface,
@@ -19,17 +20,52 @@ import {
 const PanelAgentParams = Type.Object({
   name: Type.String({ description: "Display name for the cmux panel" }),
   task: Type.String({ description: "Task/prompt for the sub-agent" }),
+  agent: Type.Optional(
+    Type.String({ description: "Agent name to load defaults from (e.g. 'worker', 'scout', 'reviewer'). Reads ~/.pi/agent/agents/<name>.md for model, tools, skills." })
+  ),
   systemPrompt: Type.Optional(
     Type.String({ description: "Appended to system prompt (role instructions)" })
   ),
   interactive: Type.Optional(
-    Type.Boolean({ description: "true = user collaborates, false = autonomous (-p mode). Default: true" })
+    Type.Boolean({ description: "true = user collaborates, false = autonomous. Default: true" })
   ),
-  model: Type.Optional(Type.String({ description: "Model override" })),
-  skills: Type.Optional(Type.String({ description: "Comma-separated skills to load" })),
-  tools: Type.Optional(Type.String({ description: "Comma-separated tools to enable" })),
-  extensions: Type.Optional(Type.String({ description: "Comma-separated extension paths to load (e.g. ~/.pi/agent/extensions/session-artifacts.ts)" })),
+  model: Type.Optional(Type.String({ description: "Model override (overrides agent default)" })),
+  skills: Type.Optional(Type.String({ description: "Comma-separated skills (overrides agent default)" })),
+  tools: Type.Optional(Type.String({ description: "Comma-separated tools (overrides agent default)" })),
+  extensions: Type.Optional(Type.String({ description: "Comma-separated extension paths to load" })),
 });
+
+interface AgentDefaults {
+  model?: string;
+  tools?: string;
+  skills?: string;
+  thinking?: string;
+}
+
+function loadAgentDefaults(agentName: string): AgentDefaults | null {
+  const paths = [
+    join(process.cwd(), ".pi", "agents", `${agentName}.md`),
+    join(homedir(), ".pi", "agent", "agents", `${agentName}.md`),
+  ];
+  for (const p of paths) {
+    if (!existsSync(p)) continue;
+    const content = readFileSync(p, "utf8");
+    const match = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!match) continue;
+    const frontmatter = match[1];
+    const get = (key: string) => {
+      const m = frontmatter.match(new RegExp(`^${key}:\\s*(.+)$`, "m"));
+      return m ? m[1].trim() : undefined;
+    };
+    return {
+      model: get("model"),
+      tools: get("tools"),
+      skills: get("skill") ?? get("skills"),
+      thinking: get("thinking"),
+    };
+  }
+  return null;
+}
 
 function formatElapsed(seconds: number): string {
   if (seconds < 60) return `${seconds}s`;
@@ -51,6 +87,13 @@ export default function panelAgentsExtension(pi: ExtensionAPI) {
     async execute(_toolCallId, params, signal, onUpdate, ctx) {
       const interactive = params.interactive !== false; // default true
       const startTime = Date.now();
+
+      // Load agent defaults if specified — explicit params override
+      const agentDefs = params.agent ? loadAgentDefaults(params.agent) : null;
+      const effectiveModel = params.model ?? agentDefs?.model;
+      const effectiveTools = params.tools ?? agentDefs?.tools;
+      const effectiveSkills = params.skills ?? agentDefs?.skills;
+      const effectiveThinking = agentDefs?.thinking;
 
       // Validate prerequisites
       if (!isCmuxAvailable()) {
@@ -123,20 +166,23 @@ export default function panelAgentsExtension(pi: ExtensionAPI) {
           }
         }
 
-        if (params.skills) {
-          for (const skill of params.skills.split(",").map((s) => s.trim()).filter(Boolean)) {
+        if (effectiveSkills) {
+          for (const skill of effectiveSkills.split(",").map((s) => s.trim()).filter(Boolean)) {
             parts.push("--skill", shellEscape(skill));
           }
         } else {
           parts.push("--no-skills");
         }
 
-        if (params.model) {
-          parts.push("--model", shellEscape(params.model));
+        if (effectiveModel) {
+          const model = effectiveThinking
+            ? `${effectiveModel}:${effectiveThinking}`
+            : effectiveModel;
+          parts.push("--model", shellEscape(model));
         }
 
-        if (params.tools) {
-          parts.push("--tools", shellEscape(params.tools));
+        if (effectiveTools) {
+          parts.push("--tools", shellEscape(effectiveTools));
         }
 
         // Never use -p. All agents run in interactive mode so the user can

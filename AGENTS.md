@@ -205,57 +205,34 @@ ls ~/.pi/history/$(basename "$PWD")/research/
 
 #### Panel Agents
 
-Panel agents spawn visible pi sessions in cmux panels. The user can watch and interact with them in real time. Use `panel_agent` for tasks where transparency or human interaction matters.
+Panel agents spawn visible pi sessions in cmux panels. The user can watch progress in real-time and optionally interact. Autonomous agents call `panel_done` to self-terminate.
 
-| Role | interactive | model | skills | extensions | When to use |
-|------|-------------|-------|--------|------------|-------------|
-| 🧠 Planner | true | — | — | session-artifacts | Brainstorming, planning features, creating todos |
-| 🔍 Scout | false | `anthropic/claude-haiku-4-5` | — | session-artifacts | Deep codebase analysis when quick `ls`/`find` isn't enough |
-| ⚡ Worker | false | — | `commit` | session-artifacts | Implementing todos (visible progress) |
-| 🔎 Reviewer | false | — | `review-rubric` | session-artifacts | Code review with full transparency |
-| 📝 Summarizer | false | — | — | session-artifacts | Summarizing sessions, research, or codebases |
-
-**Preset configurations:**
+The `agent` parameter loads defaults from `~/.pi/agent/agents/<name>.md` — same files subagents use. Model, tools, skills, thinking — all inherited. Explicit params override agent defaults.
 
 ```typescript
-// Planner — interactive, user collaborates
+// Use existing agent definitions — same configs as subagents, full transparency
+panel_agent({ name: "🔍 Scout", agent: "scout", interactive: false, task: "Analyze the codebase..." })
+panel_agent({ name: "⚡ Worker", agent: "worker", interactive: false, task: "Implement TODO-xxxx..." })
+panel_agent({ name: "🔎 Reviewer", agent: "reviewer", interactive: false, task: "Review feature branch..." })
+panel_agent({ name: "🔬 Researcher", agent: "researcher", interactive: false, task: "Research [topic]..." })
+
+// Planner — interactive, no predefined agent file, custom role
 panel_agent({
   name: "🧠 Planner",
   interactive: true,
+  tools: "read,bash,edit,write,todo,write_artifact",
   extensions: "~/.pi/agent/extensions/session-artifacts.ts",
-  systemPrompt: "You are the Planner agent. Clarify requirements, explore approaches, write a plan using write_artifact, create todos, and summarize.",
-  task: "Plan: [what to build]. Context: [relevant info]"
+  systemPrompt: "You are the Planner. Clarify requirements, explore approaches, write the plan with write_artifact, create todos, and summarize.",
+  task: "Plan: [description]. Context: [relevant info]"
 })
 
-// Scout — autonomous, fast, cheap
-panel_agent({
-  name: "🔍 Scout",
-  interactive: false,
-  model: "anthropic/claude-haiku-4-5",
-  extensions: "~/.pi/agent/extensions/session-artifacts.ts",
-  task: "Analyze the codebase at [path]. Map structure, patterns, conventions. Write findings with write_artifact."
-})
-
-// Worker — autonomous, commits with skill
-panel_agent({
-  name: "⚡ Worker",
-  interactive: false,
-  skills: "commit",
-  extensions: "~/.pi/agent/extensions/session-artifacts.ts",
-  task: "Implement TODO-xxxx. Commit with a polished message. Mark todo as done."
-})
-
-// Reviewer — autonomous, uses review rubric
-panel_agent({
-  name: "🔎 Reviewer",
-  interactive: false,
-  skills: "review-rubric",
-  extensions: "~/.pi/agent/extensions/session-artifacts.ts",
-  task: "Review the feature branch against main. Focus on correctness, security, maintainability."
-})
+// Override agent defaults when needed
+panel_agent({ name: "⚡ Worker", agent: "worker", model: "anthropic/claude-haiku-4-5", task: "Quick fix..." })
 ```
 
-**Panel agents vs subagents:** Use panel agents when you want the user to see what's happening (or interact). Use subagents for background work where visibility doesn't matter. Both can coexist.
+Always pass `extensions: "~/.pi/agent/extensions/session-artifacts.ts"` when the agent needs `write_artifact` (check if the agent definition already includes it in tools).
+
+**Panel agents vs subagents:** Panel agents = visible, interactive possible. Subagents = background, headless. Both read the same agent definitions.
 
 #### When to Delegate
 
