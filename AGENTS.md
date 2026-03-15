@@ -201,7 +201,61 @@ ls ~/.pi/history/$(basename "$PWD")/research/
 | `reviewer` | Reviews code for quality/security | Codex 5.3 |
 | `researcher` | Deep research using parallel.ai tools (web search, extraction, synthesis) + Claude Code for code analysis | Sonnet 4.6 |
 
-**Planning happens in the main session** (interactive, with user feedback) — not delegated to subagents.
+**Planning happens in a panel agent** (interactive, human-in-the-loop) — see Panel Agents below.
+
+#### Panel Agents
+
+Panel agents spawn visible pi sessions in cmux panels. The user can watch and interact with them in real time. Use `panel_agent` for tasks where transparency or human interaction matters.
+
+| Role | interactive | model | skills | extensions | When to use |
+|------|-------------|-------|--------|------------|-------------|
+| 🧠 Planner | true | — | — | session-artifacts | Brainstorming, planning features, creating todos |
+| 🔍 Scout | false | `anthropic/claude-haiku-4-5` | — | session-artifacts | Deep codebase analysis when quick `ls`/`find` isn't enough |
+| ⚡ Worker | false | — | `commit` | session-artifacts | Implementing todos (visible progress) |
+| 🔎 Reviewer | false | — | `review-rubric` | session-artifacts | Code review with full transparency |
+| 📝 Summarizer | false | — | — | session-artifacts | Summarizing sessions, research, or codebases |
+
+**Preset configurations:**
+
+```typescript
+// Planner — interactive, user collaborates
+panel_agent({
+  name: "🧠 Planner",
+  interactive: true,
+  extensions: "~/.pi/agent/extensions/session-artifacts.ts",
+  systemPrompt: "You are the Planner agent. Clarify requirements, explore approaches, write a plan using write_artifact, create todos, and summarize.",
+  task: "Plan: [what to build]. Context: [relevant info]"
+})
+
+// Scout — autonomous, fast, cheap
+panel_agent({
+  name: "🔍 Scout",
+  interactive: false,
+  model: "anthropic/claude-haiku-4-5",
+  extensions: "~/.pi/agent/extensions/session-artifacts.ts",
+  task: "Analyze the codebase at [path]. Map structure, patterns, conventions. Write findings with write_artifact."
+})
+
+// Worker — autonomous, commits with skill
+panel_agent({
+  name: "⚡ Worker",
+  interactive: false,
+  skills: "commit",
+  extensions: "~/.pi/agent/extensions/session-artifacts.ts",
+  task: "Implement TODO-xxxx. Commit with a polished message. Mark todo as done."
+})
+
+// Reviewer — autonomous, uses review rubric
+panel_agent({
+  name: "🔎 Reviewer",
+  interactive: false,
+  skills: "review-rubric",
+  extensions: "~/.pi/agent/extensions/session-artifacts.ts",
+  task: "Review the feature branch against main. Focus on correctness, security, maintainability."
+})
+```
+
+**Panel agents vs subagents:** Use panel agents when you want the user to see what's happening (or interact). Use subagents for background work where visibility doesn't matter. Both can coexist.
 
 #### When to Delegate
 
@@ -252,7 +306,7 @@ Skills provide specialized instructions for specific tasks. Load them when the c
 | When... | Load skill... |
 |---------|---------------|
 | Starting work in a new/unfamiliar project, or asked to learn conventions | `learn-codebase` |
-| User wants to brainstorm / build something significant | `brainstorm` |
+| User wants to brainstorm / build something significant | `plan` (uses panel agents) or `brainstorm` (inline) |
 | Making git commits (always — every commit must be polished and descriptive) | `commit` |
 | Starting, stopping, or configuring Docker/OrbStack services | `dev-environment` |
 | Building web components, pages, or frontend interfaces | `frontend-design` |
