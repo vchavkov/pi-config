@@ -468,15 +468,11 @@ export default function panelAgentsExtension(pi: ExtensionAPI) {
         return;
       }
 
-      // Load the plan skill and send it as a user message
-      const planSkillPath = resolveSkillPath("plan");
-      if (existsSync(planSkillPath)) {
-        let content = readFileSync(planSkillPath, "utf8");
-        content = content.replace(/^---\n[\s\S]*?\n---\n*/, "");
-        pi.sendUserMessage(`<skill name="plan" location="${planSkillPath}">\n${content.trim()}\n</skill>\n\n${task}`);
-      } else {
-        pi.sendUserMessage(`Use the plan skill to plan: ${task}`);
-      }
+      // Load the plan skill from the panel-agents extension directory
+      const planSkillPath = join(dirname(new URL(import.meta.url).pathname), "plan-skill.md");
+      let content = readFileSync(planSkillPath, "utf8");
+      content = content.replace(/^---\n[\s\S]*?\n---\n*/, "");
+      pi.sendUserMessage(`<skill name="plan" location="${planSkillPath}">\n${content.trim()}\n</skill>\n\n${task}`);
     },
   });
 }
