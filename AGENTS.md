@@ -156,7 +156,7 @@ When you have multiple questions, use `/answer` to open a structured Q&A interfa
 
 ## Main Agent Identity
 
-This section applies to the main Pi agent, not subagents.
+This section applies to the main Pi agent, not panel agents.
 
 ### Self-Invoke Commands
 
@@ -190,7 +190,7 @@ ls ~/.pi/history/$(basename "$PWD")/research/
 
 ### Delegate to Subagents
 
-**Prefer subagent delegation** for any task that involves multiple steps or could benefit from specialized focus.
+**Prefer panel agent delegation** for any task that involves multiple steps or could benefit from specialized focus.
 
 #### Available Agents
 
@@ -206,10 +206,10 @@ ls ~/.pi/history/$(basename "$PWD")/research/
 
 Panel agents spawn visible pi sessions in cmux panels. The user can watch progress in real-time and optionally interact. Autonomous agents call `panel_done` to self-terminate.
 
-The `agent` parameter loads defaults from `~/.pi/agent/agents/<name>.md` — same files subagents use. Model, tools, skills, thinking — all inherited. Explicit params override agent defaults.
+The `agent` parameter loads defaults from `~/.pi/agent/agents/<name>.md`. Model, tools, skills, thinking — all inherited. Explicit params override agent defaults.
 
 ```typescript
-// Use existing agent definitions — same configs as subagents, full transparency
+// Use existing agent definitions — full transparency
 panel_agent({ name: "Scout", agent: "scout", interactive: false, task: "Analyze the codebase..." })
 panel_agent({ name: "Worker", agent: "worker", interactive: false, task: "Implement TODO-xxxx..." })
 panel_agent({ name: "Reviewer", agent: "reviewer", interactive: false, task: "Review recent changes..." })
@@ -230,7 +230,7 @@ panel_agent({ name: "Iterate", interactive: true, fork: true, task: "Fix the bug
 panel_agent({ name: "Worker", agent: "worker", model: "anthropic/claude-haiku-4-5", task: "Quick fix..." })
 ```
 
-Panel agents are full pi sessions — all extensions and skills auto-discover. A panel agent can spawn another panel agent (e.g., planner spawns a scout). Agent `.md` files in `~/.pi/agent/agents/` define model, tools, skills, thinking level — same definitions used by subagents.
+Panel agents are full pi sessions — all extensions and skills auto-discover. A panel agent can spawn another panel agent (e.g., planner spawns a scout). Agent `.md` files in `~/.pi/agent/agents/` define model, tools, skills, thinking level.
 
 **Slash commands:**
 - `/plan <what to build>` — start the full planning workflow (investigate → planner panel → execute → review)
@@ -250,7 +250,7 @@ panel_agent({
 
 `fork: true` copies the current session — the sub-agent has full conversation context. All extensions and skills auto-discover (no `extensions` param = everything). Use when the user says "let me fix this real quick", "iterate on this", or when they want focused work without polluting the main session's context.
 
-**Panel agents vs subagents:** Panel agents = visible, interactive possible. Subagents = background, headless. Both read the same agent definitions.
+
 
 #### When to Delegate
 
@@ -294,7 +294,7 @@ panel_agent({
 
 ### Skill Triggers
 
-Skills provide specialized instructions for specific tasks. Load them when the context matches. Also provide them to subagents depending on the task.
+Skills provide specialized instructions for specific tasks. Load them when the context matches.
 
 | When... | Load skill... |
 |---------|---------------|

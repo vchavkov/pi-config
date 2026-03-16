@@ -35,7 +35,6 @@ cd ~/.pi/agent && git pull
 
 This config uses **panel agents** — visible pi sessions spawned in [cmux](https://github.com/nicobailon/cmux) terminal panels. Each panel agent is a full pi session with its own identity, tools, and skills. The user can watch agents work in real-time and interact when needed.
 
-Agent definitions live in `agents/*.md` with YAML frontmatter (model, tools, thinking level) and a markdown body that defines the agent's identity and workflow. The same `.md` files are used by both the panel-agents extension and the pi-subagents package.
 
 ### Key Concepts
 
@@ -109,7 +108,6 @@ Installed via `pi install`, managed in `settings.json`.
 
 | Package | Description |
 |---------|-------------|
-| [pi-subagents](https://github.com/nicobailon/pi-subagents) | Agent definitions, subagent tool (shared agent `.md` format) |
 | [pi-parallel](https://github.com/HazAT/pi-parallel) | Parallel web search, extract, research, and enrich tools |
 | [pi-smart-sessions](https://github.com/HazAT/pi-smart-sessions) | AI-generated session names |
 | [pi-cmux](https://github.com/sasha-computer/pi-cmux) | cmux integration |

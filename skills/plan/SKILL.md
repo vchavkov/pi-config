@@ -82,10 +82,6 @@ Context from investigation:
 
 Once the panel closes, read the plan and todos:
 
-```bash
-cat ~/.pi/history/<project>/plans/YYYY-MM-DD-<name>.md
-```
-
 ```typescript
 todo({ action: "list" })
 ```
@@ -97,33 +93,31 @@ Review with the user:
 
 ## Phase 4: Execute Todos
 
-Use the scout → worker pattern from the subagents system:
+Spawn a scout first for context, then workers sequentially:
 
 ```typescript
-// 1. Scout gathers context for all workers
-subagent({ agent: "scout", task: "Gather context for implementing [feature]. Read the plan at ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md. Identify all files that will be created/modified, map existing patterns and conventions." })
+// 1. Scout gathers context
+panel_agent({
+  name: "Scout",
+  agent: "scout",
+  interactive: false,
+  task: "Gather context for implementing [feature]. Read the plan at [plan path]. Identify all files that will be created/modified, map existing patterns and conventions."
+})
 
-// 2. Read scout's output
-const scoutContext = read(".pi/context.md")
-
-// 3. Workers execute todos sequentially — one at a time
-subagent({ agent: "worker", task: `Implement TODO-xxxx. Use the commit skill to write a polished, descriptive commit message. Mark the todo as done. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md
-
-Scout context:
-${scoutContext}` })
-
-// Check result, then next todo
-subagent({ agent: "worker", task: `Implement TODO-yyyy. ...` })
-```
-
-**Alternatively**, use panel agents for visible worker progress:
-
-```typescript
+// 2. Workers execute todos sequentially — one at a time
 panel_agent({
   name: "Worker",
   agent: "worker",
   interactive: false,
-  task: "Implement TODO-xxxx. Mark the todo as done. Plan: ..."
+  task: "Implement TODO-xxxx. Mark the todo as done. Plan: [plan path]\n\nScout context: [paste scout summary]"
+})
+
+// Check result, then next todo
+panel_agent({
+  name: "Worker",
+  agent: "worker",
+  interactive: false,
+  task: "Implement TODO-yyyy. Mark the todo as done. Plan: [plan path]\n\nScout context: [paste scout summary]"
 })
 ```
 
@@ -131,16 +125,17 @@ panel_agent({
 
 ---
 
-## Phase 6: Review
+## Phase 5: Review
 
 After all todos are complete:
 
 ```typescript
-// Using subagent (background)
-subagent({ agent: "reviewer", task: "Review the recent changes. Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-feature.md" })
-
-// Or using panel agent (visible)
-panel_agent({ name: "Reviewer", agent: "reviewer", interactive: false, task: "Review the recent changes. Plan: ..." })
+panel_agent({
+  name: "Reviewer",
+  agent: "reviewer",
+  interactive: false,
+  task: "Review the recent changes. Plan: [plan path]"
+})
 ```
 
 Triage findings:
@@ -161,4 +156,3 @@ Before reporting done:
 2. ✅ Every todo has a polished commit (using the `commit` skill)?
 3. ✅ Reviewer has run?
 4. ✅ Reviewer findings triaged and addressed?
-
