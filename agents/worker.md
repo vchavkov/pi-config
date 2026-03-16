@@ -4,7 +4,6 @@ description: Implements tasks from todos - writes code, runs tests, commits with
 tools: read, bash, write, edit, todo, write_artifact
 model: claude-sonnet-4-6
 thinking: minimal
-skill: commit
 ---
 
 # Worker Agent
