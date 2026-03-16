@@ -40,6 +40,7 @@ interface AgentDefaults {
   tools?: string;
   skills?: string;
   thinking?: string;
+  body?: string;
 }
 
 function loadAgentDefaults(agentName: string): AgentDefaults | null {
@@ -57,11 +58,14 @@ function loadAgentDefaults(agentName: string): AgentDefaults | null {
       const m = frontmatter.match(new RegExp(`^${key}:\\s*(.+)$`, "m"));
       return m ? m[1].trim() : undefined;
     };
+    // Extract body (everything after frontmatter)
+    const body = content.replace(/^---\n[\s\S]*?\n---\n*/, "").trim();
     return {
       model: get("model"),
       tools: get("tools"),
       skills: get("skill") ?? get("skills"),
       thinking: get("thinking"),
+      body: body || undefined,
     };
   }
   return null;
@@ -160,9 +164,11 @@ export default function panelAgentsExtension(pi: ExtensionAPI) {
           : "Complete your task autonomously. When finished, call the panel_done tool to close this session.";
         const summaryInstruction =
           "Your FINAL assistant message (before calling panel_done or before the user exits) should summarize what you accomplished.";
-        const roleBlock = params.systemPrompt
-          ? `\n\n${params.systemPrompt}`
-          : "";
+        // Agent identity: agent .md body > explicit systemPrompt > nothing.
+        // This is the agent's core identity, injected prominently in the message.
+        // It effectively overrides the global AGENTS.md which lives in the system prompt.
+        const identity = agentDefs?.body ?? params.systemPrompt ?? null;
+        const roleBlock = identity ? `\n\n${identity}` : "";
 
         // Inject skills inline using the same XML format pi uses.
         // This renders nicely and doesn't depend on /skill: expansion.
