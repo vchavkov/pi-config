@@ -216,11 +216,11 @@ panel_agent({ name: "Worker", agent: "worker", interactive: false, task: "Implem
 panel_agent({ name: "Reviewer", agent: "reviewer", interactive: false, task: "Review feature branch..." })
 panel_agent({ name: "Researcher", agent: "researcher", interactive: false, task: "Research [topic]..." })
 
-// Planner — interactive, uses the planner skill for structured brainstorming
+// Planner — interactive, uses the brainstorm skill for structured planning
 panel_agent({
   name: "Planner",
   interactive: true,
-  skills: "planner",
+  skills: "brainstorm",
   task: "Plan: [description]. Context: [relevant info]"
 })
 

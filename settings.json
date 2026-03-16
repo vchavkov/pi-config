@@ -19,7 +19,13 @@
     },
     "git:github.com/pasky/chrome-cdp-skill",
     "git:github.com/HazAT/glimpse",
-    "git:github.com/nicobailon/pi-subagents"
+    {
+      "source": "git:github.com/nicobailon/pi-subagents",
+      "extensions": [
+        "-index.ts",
+        "-notify.ts"
+      ]
+    }
   ],
   "hideThinkingBlock": false,
   "extensions": [
@@ -29,6 +35,7 @@
     "-extensions/branch.ts"
   ],
   "skills": [
-    "-skills/tmux/SKILL.md"
+    "-skills/tmux/SKILL.md",
+    "-skills/brainstorm/SKILL.md"
   ]
 }
