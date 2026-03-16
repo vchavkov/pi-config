@@ -531,6 +531,180 @@ export default function subagentsExtension(pi: ExtensionAPI) {
     },
   });
 
+  // subagent_resume tool — resume a previous subagent session
+  pi.registerTool({
+    name: "subagent_resume",
+    label: "Resume Subagent",
+    description:
+      "Resume a previous sub-agent session in a new cmux terminal. " +
+      "Opens an interactive session from the given session file path. " +
+      "Use when a sub-agent was cancelled or needs follow-up work.",
+    parameters: Type.Object({
+      sessionPath: Type.String({ description: "Path to the session .jsonl file to resume" }),
+      name: Type.Optional(Type.String({ description: "Display name for the terminal tab. Default: 'Resume'" })),
+      message: Type.Optional(Type.String({ description: "Optional message to send after resuming (e.g. follow-up instructions)" })),
+    }),
+
+    renderCall(args, theme) {
+      const name = args.name ?? "Resume";
+      const text =
+        "▸ " +
+        theme.fg("toolTitle", theme.bold(name)) +
+        theme.fg("dim", " — resuming session");
+      return new Text(text, 0, 0);
+    },
+
+    renderResult(result, { expanded, isPartial }, theme) {
+      const details = result.details as any;
+      const name = details?.name ?? "Resume";
+
+      if (isPartial) {
+        const startTime: number | undefined = details?.startTime;
+        const elapsedText = startTime
+          ? formatElapsed(Math.floor((Date.now() - startTime) / 1000))
+          : "running…";
+        let text =
+          "▸ " +
+          theme.fg("toolTitle", theme.bold(name)) +
+          theme.fg("dim", ` — ${elapsedText}`);
+        text +=
+          "\n" +
+          theme.fg("accent", `Switch to the "${name}" terminal. `) +
+          theme.fg("dim", "Exit (Ctrl+D) to return.");
+        return new Text(text, 0, 0);
+      }
+
+      const exitCode = details?.exitCode ?? 0;
+      const elapsed = details?.elapsed != null ? formatElapsed(details.elapsed) : "?";
+      const summaryText =
+        typeof result.content?.[0]?.text === "string" ? result.content[0].text : "";
+
+      if (exitCode !== 0) {
+        const text =
+          theme.fg("error", "✗") +
+          " " +
+          theme.fg("toolTitle", theme.bold(name)) +
+          theme.fg("dim", ` — failed (exit code ${exitCode})`);
+        return new Text(text, 0, 0);
+      }
+
+      const cleanSummary = summaryText.replace(/\n\nSession: .+\nResume: .+$/, "").replace(/\n\nSession: .+$/, "");
+      const preview =
+        expanded || cleanSummary.length <= 120
+          ? cleanSummary
+          : cleanSummary.slice(0, 120) + "…";
+
+      const sessionLine = details?.sessionPath
+        ? "\n" + theme.fg("dim", `Session: ${details.sessionPath}`)
+        : "";
+
+      const text =
+        theme.fg("success", "✓") +
+        " " +
+        theme.fg("toolTitle", theme.bold(name)) +
+        theme.fg("dim", ` — completed (${elapsed})`) +
+        (preview ? "\n" + theme.fg("text", preview) : "") +
+        sessionLine;
+
+      return new Text(text, 0, 0);
+    },
+
+    async execute(_toolCallId, params, signal, onUpdate) {
+      const name = params.name ?? "Resume";
+      const startTime = Date.now();
+
+      if (!isCmuxAvailable()) {
+        return {
+          content: [{ type: "text", text: "Error: cmux is not available. Set CMUX_SOCKET_PATH to use subagents." }],
+          details: { error: "cmux not available" },
+        };
+      }
+
+      if (!existsSync(params.sessionPath)) {
+        return {
+          content: [{ type: "text", text: `Error: session file not found: ${params.sessionPath}` }],
+          details: { error: "session not found" },
+        };
+      }
+
+      // Record entry count before resuming so we can extract new messages
+      const entryCountBefore = getNewEntries(params.sessionPath, 0).length;
+
+      let surface: string | null = null;
+
+      try {
+        surface = createSurface(name);
+        await new Promise<void>((resolve) => setTimeout(resolve, 500));
+
+        // Build pi resume command
+        const parts = ["pi", "--session", shellEscape(params.sessionPath)];
+
+        // Load subagent-done extension so the agent can self-terminate if needed
+        const subagentDonePath = join(dirname(new URL(import.meta.url).pathname), "subagent-done.ts");
+        parts.push("-e", shellEscape(subagentDonePath));
+
+        if (params.message) {
+          // Write follow-up message to a temp file and pass via @file
+          const msgFile = join(tmpdir(), `subagent-resume-${Date.now()}.md`);
+          writeFileSync(msgFile, params.message, "utf8");
+          parts.push(`@${msgFile}`);
+          const command = `${parts.join(" ")}; rm -f ${shellEscape(msgFile)}; echo '__SUBAGENT_DONE_'$?'__'`;
+          sendCommand(surface, command);
+        } else {
+          const command = `${parts.join(" ")}; echo '__SUBAGENT_DONE_'$?'__'`;
+          sendCommand(surface, command);
+        }
+
+        const exitCode = await pollForExit(surface, signal ?? new AbortController().signal, {
+          interval: 3000,
+          onTick() {
+            onUpdate?.({
+              content: [{ type: "text", text: `${formatElapsed(Math.floor((Date.now() - startTime) / 1000))} elapsed` }],
+              details: { name, sessionPath: params.sessionPath, startTime },
+            });
+          },
+        });
+
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+
+        // Extract summary from new entries
+        const allEntries = getNewEntries(params.sessionPath, entryCountBefore);
+        const summary =
+          findLastAssistantMessage(allEntries) ??
+          (exitCode !== 0
+            ? `Resumed session exited with code ${exitCode}`
+            : "Resumed session exited without new output");
+
+        closeSurface(surface);
+        surface = null;
+
+        const sessionRef = `\n\nSession: ${params.sessionPath}\nResume: pi --session ${params.sessionPath}`;
+
+        return {
+          content: [{ type: "text", text: `${summary}${sessionRef}` }],
+          details: { name, sessionPath: params.sessionPath, exitCode, elapsed },
+        };
+      } catch (err: any) {
+        if (surface) {
+          try { closeSurface(surface); } catch {}
+          surface = null;
+        }
+
+        if (signal?.aborted) {
+          return {
+            content: [{ type: "text", text: "Resume cancelled." }],
+            details: { error: "cancelled" },
+          };
+        }
+
+        return {
+          content: [{ type: "text", text: `Resume error: ${err?.message ?? String(err)}` }],
+          details: { error: err?.message },
+        };
+      }
+    },
+  });
+
   // /iterate command — fork the session into an interactive subagent
   pi.registerCommand("iterate", {
     description: "Fork session into an interactive subagent for focused work (bugfixes, iteration)",
