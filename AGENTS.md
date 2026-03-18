@@ -198,7 +198,17 @@ subagent({ name: "Iterate", interactive: true, fork: true, task: "Fix the bug wh
 
 // Override agent defaults when needed
 subagent({ name: "Worker", agent: "worker", model: "anthropic/claude-haiku-4-5", task: "Quick fix..." })
+
+// Parallel subagents — run multiple agents concurrently with tiled layout
+parallel_subagents({
+  agents: [
+    { name: "Scout: Auth", agent: "scout", task: "Analyze auth module" },
+    { name: "Scout: DB", agent: "scout", task: "Map database schema" },
+  ]
+})
 ```
+
+**Parallel execution:** Use `parallel_subagents` to run multiple autonomous agents concurrently. Each gets its own cmux terminal in a tiled layout (first splits right, subsequent stack vertically). Progress updates stream in as each agent finishes — no waiting for all to complete.
 
 Subagents are full pi sessions — all extensions and skills auto-discover. A subagent can spawn another subagent (e.g., planner spawns a scout). Agent `.md` files in `~/.pi/agent/agents/` define model, tools, skills, thinking level.
 
