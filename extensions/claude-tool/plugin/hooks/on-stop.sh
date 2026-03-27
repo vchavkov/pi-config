@@ -24,8 +24,11 @@ if [ -z "$transcript_path" ] || [ ! -f "$transcript_path" ]; then
   exit 0
 fi
 
-# Count user messages in transcript
-# Claude's transcript format: {"type": "user", "message": {"role": "user", ...}}
+# Count real human messages in transcript (not tool results)
+# Claude's transcript format:
+#   Human message: {"type": "user", "message": {"role": "user", "content": "..."}}
+#   Tool result:   {"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", ...}]}}
+# We only count entries where content is a string (real human input)
 user_msg_count=$(python3 - "$transcript_path" <<'EOF'
 import sys, json
 
@@ -38,9 +41,14 @@ with open(transcript_path, 'r') as f:
             continue
         try:
             entry = json.loads(line)
-            if entry.get('type') == 'user':
+            if entry.get('type') != 'user':
+                continue
+            content = entry.get('message', {}).get('content', '')
+            # Real human messages have string content
+            # Tool results have array content with tool_result blocks
+            if isinstance(content, str):
                 count += 1
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, AttributeError):
             pass
 print(count)
 EOF
