@@ -24,7 +24,8 @@ if [ -z "$transcript_path" ] || [ ! -f "$transcript_path" ]; then
   exit 0
 fi
 
-# Count user messages in transcript (role: "human" or "user")
+# Count user messages in transcript
+# Claude's transcript format: {"type": "user", "message": {"role": "user", ...}}
 user_msg_count=$(python3 - "$transcript_path" <<'EOF'
 import sys, json
 
@@ -37,8 +38,7 @@ with open(transcript_path, 'r') as f:
             continue
         try:
             entry = json.loads(line)
-            role = entry.get('role', '')
-            if role in ('human', 'user'):
+            if entry.get('type') == 'user':
                 count += 1
         except json.JSONDecodeError:
             pass
