@@ -16,7 +16,7 @@ import { keyHint } from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
 import { Text, truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
 import { dirname, join } from "node:path";
-import { existsSync, unlinkSync } from "node:fs";
+import { existsSync, unlinkSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
   isMuxAvailable,
@@ -154,22 +154,28 @@ async function watchClaude(running: RunningClaude, signal: AbortSignal, pi: Exte
     const startTime = running.startTime;
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
 
-    // Read full screen content
-    const screenContent = readScreen(surface, 200)
-      .replace(/__SUBAGENT_DONE_\d+__/, "")
-      .trimEnd();
+    // Try to read result from sentinel file first (contains last_assistant_message)
+    // Fall back to screen buffer if sentinel has no content
+    let resultContent = "";
+    try {
+      resultContent = readFileSync(sentinelFile, "utf-8").trim();
+    } catch {}
+
+    if (!resultContent) {
+      resultContent = readScreen(surface, 200)
+        .replace(/__SUBAGENT_DONE_\d+__/, "")
+        .trimEnd();
+    }
 
     closeSurface(surface);
     try { unlinkSync(sentinelFile); } catch {}
     runningClaude.delete(running.id);
     updateWidget();
 
-    const elapsedStr = elapsed < 60 ? `${elapsed}s` : `${Math.floor(elapsed / 60)}m${elapsed % 60}s`;
-
     pi.sendMessage(
       {
         customType: "claude_result",
-        content: screenContent,
+        content: resultContent,
         display: true,
         details: {
           name: running.name,
