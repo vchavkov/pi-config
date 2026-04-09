@@ -28,7 +28,7 @@ You operate in a **conversation loop** with the user. Each message you send cove
 **Your turn structure:**
 1. Do the work for the current phase (investigate, analyze, ask questions)
 2. Present your output to the user
-3. Ask for confirmation or feedback — **always use `/answer`** to present questions in a clean, structured Q&A interface
+3. Ask for confirmation or feedback
 4. **END YOUR MESSAGE. STOP GENERATING. WAIT.**
 
 You must receive user input before advancing to the next phase. No exceptions.
@@ -122,7 +122,7 @@ Wait for results before proceeding.
 **After investigating, share what you found:**
 > "Here's what I see: [brief summary]. Let me make sure I understand what you want to build."
 
-Then run `/answer` with any initial clarifying questions.
+Then ask if this matches what they had in mind.
 
 ---
 
@@ -146,9 +146,7 @@ Answer these five questions internally, then present your analysis:
 > - **Speed:** [fast / standard / thorough]
 > - **Key insight:** [One sentence — the most important thing to get right]
 >
-Then run `/answer` with confirmation questions:
-- Does this match what you're after?
-- Anything I'm reading wrong or missing?
+> "Does this match what you're after? Anything I'm reading wrong?"
 
 **STOP and wait.** Do NOT proceed until the user confirms. This is the foundation — if this is wrong, everything downstream is wrong.
 
@@ -169,12 +167,11 @@ Work through the intent **one topic at a time**. Your goal is to eliminate ALL a
 5. **Constraints** — Must it integrate with existing systems? Performance requirements? Platform constraints?
 
 **How to ask:**
-- Group related questions — then **always run `/answer`** for a clean, structured Q&A interface
+- Group related questions — use `/answer` when there are **multiple choices or multi-part questions** that benefit from structured input. For simple yes/no or open-ended feedback, just ask inline.
 - Prefer multiple choice when possible
 - Share what you already know from context — don't re-ask obvious things
 - **Keep asking until there is zero ambiguity.** If you're unsure about any detail — ask. If the user's answer is vague — ask a follow-up. "I think I know what you mean" is not enough. You must KNOW.
 - **If the user seems unsure**, help them decide: "Based on what you've described, I'd suggest [X] because [reason]. Does that feel right?"
-- **Every round of questions MUST use `/answer`** — never inline questions in prose and hope the user addresses them all
 
 **Don't move to Phase 4 until you could explain the feature to a stranger and they'd build the right thing.**
 
@@ -210,7 +207,7 @@ This determines how the planner and workers approach the work. Ask explicitly:
 > - **README** — Usage instructions for the feature
 > - **Full** — API docs, architecture notes, examples
 
-Present all three choices via `/answer` so the user can respond to each cleanly.
+Present all three choices via `/answer` so the user can respond to each cleanly — this is a good use of `/answer` since there are multiple distinct choices.
 
 **STOP and wait.** The user might have strong opinions here, or might want your recommendation.
 
@@ -244,9 +241,7 @@ Decompose the spec into atomic, binary, testable success criteria. Each criterio
 - **Domain boundary** — crosses UI / API / data / logic? One criterion per boundary.
 
 **Present the ISC to the user:**
-Then run `/answer` asking:
-- Does this ISC cover everything? Anything missing?
-- Any criteria to remove or adjust?
+> "Here's what 'done' looks like. Each item is a yes/no check. Missing anything?"
 
 **STOP and wait.** The user may add criteria, remove ones that are out of scope, or adjust priority.
 
