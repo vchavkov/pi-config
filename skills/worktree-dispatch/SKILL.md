@@ -22,7 +22,6 @@ for the user or itself to trigger the next check. This keeps pi responsive throu
 - Single-file fixes or tasks under ~30 minutes of work
 - No written task spec or clear requirements
 - Outside a git repository
-- cmux not available (`CMUX_SOCKET_PATH` not set)
 
 ---
 
@@ -130,10 +129,14 @@ PROMPT="Read .tasks/TASK.md and implement it completely. Write STATUS: complete 
 cmux send --surface $SURFACE "cd $WORKTREE_PATH && cursor-agent --print --force \"$PROMPT\"\n"
 ```
 
-Read initial output after ~5 seconds to confirm startup:
+Poll until cursor-agent produces output (max 20 seconds):
 
 ```bash
-sleep 5
+for i in $(seq 1 20); do
+  OUT=$(cmux read-screen --surface $SURFACE --lines 10)
+  echo "$OUT" | grep -qi "reading\|task\|implement\|cursor" && break
+  sleep 1
+done
 cmux read-screen --surface $SURFACE --lines 20
 ```
 
@@ -153,7 +156,11 @@ SURFACE_OUT=$(cmux read-screen --surface $SURFACE --scrollback --lines 80)
 
 ### STATUS: complete
 
-cursor-agent finished. Proceed to Phase 5 (Verify).
+cursor-agent finished. Notify and proceed to Phase 5 (Verify).
+
+```bash
+cmux notify --title "worktree-dispatch" --body "Task complete — verifying <slug>"
+```
 
 ### STATUS: blocked
 
@@ -173,9 +180,21 @@ cmux send --surface $SURFACE "cursor-agent --print --force \"$RESUME\"\n"
 
 Then re-enter Phase 4 on the next check trigger.
 
-### Still running (no STATUS line yet)
+```bash
+cmux notify --title "worktree-dispatch" --body "Question answered — cursor-agent resuming on <slug>"
+```
 
-cursor-agent is still working. Show the last lines of surface output to the user:
+### No STATUS line yet
+
+Detect whether cursor-agent is still running or exited silently by checking for a shell
+prompt at the end of the surface. When cursor-agent exits, the shell prompt appears:
+
+```bash
+LAST=$(cmux read-screen --surface $SURFACE --lines 5)
+echo "$LAST" | grep -qE '[$#%>] *$' && AGENT_EXITED=true || AGENT_EXITED=false
+```
+
+**Still running** (`AGENT_EXITED=false`): show progress and wait.
 
 ```bash
 echo "$SURFACE_OUT" | tail -30
@@ -183,9 +202,8 @@ echo "$SURFACE_OUT" | tail -30
 
 Report: "Still running — trigger another check when ready." Do not block waiting.
 
-### Surface shows shell prompt, no STATUS
-
-cursor-agent exited without writing a STATUS line — likely an error. Read scrollback:
+**Exited silently** (`AGENT_EXITED=true`, no STATUS in TASK.md): cursor-agent crashed or
+hit an unhandled error. Read full scrollback and escalate:
 
 ```bash
 cmux read-screen --surface $SURFACE --scrollback --lines 200
