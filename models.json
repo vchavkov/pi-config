@@ -15,6 +15,40 @@
           "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
         }
       ]
+    },
+    "vertex-anthropic": {
+      "baseUrl": "https://aiplatform.googleapis.com",
+      "apiKey": "<GOOGLE_CLOUD_API_KEY_OR_ADC>",
+      "api": "google-vertex",
+      "models": [
+        {
+          "id": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+          "name": "Claude Haiku 4.5 (Vertex AI Global)",
+          "reasoning": true,
+          "input": ["text", "image"],
+          "contextWindow": 128000,
+          "maxTokens": 16384,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
+        },
+        {
+          "id": "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+          "name": "Claude Sonnet 4.5 (Vertex AI Global)",
+          "reasoning": true,
+          "input": ["text", "image"],
+          "contextWindow": 128000,
+          "maxTokens": 16384,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
+        },
+        {
+          "id": "global.anthropic.claude-opus-4-5-20251101-v1:0",
+          "name": "Claude Opus 4.5 (Vertex AI Global)",
+          "reasoning": true,
+          "input": ["text", "image"],
+          "contextWindow": 128000,
+          "maxTokens": 16384,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
+        }
+      ]
     }
   }
 }
