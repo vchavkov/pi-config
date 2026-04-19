@@ -17,8 +17,8 @@
       ]
     },
     "vertex-anthropic": {
-      "baseUrl": "https://aiplatform.googleapis.com",
-      "apiKey": "<GOOGLE_CLOUD_API_KEY_OR_ADC>",
+      "baseUrl": "https://aoai-farm.bosch-temp.com/api/google/v1",
+      "apiKey": "<ANTHROPIC_AUTH_TOKEN>",
       "api": "google-vertex",
       "models": [
         {
