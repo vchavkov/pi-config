@@ -8,30 +8,35 @@ This is a fork of [HazAT/pi-config](https://github.com/HazAT/pi-config). The ori
 
 ## Quick Start — Fresh Machine
 
-### 1. Install pi
-
-Follow the official instructions at https://github.com/badlogic/pi
-
-### 2. Clone this repo as your agent config
-
-pi auto-discovers everything placed at `~/.pi/agent/` — extensions, skills, agents, `AGENTS.md`, `mcp.json`. No symlinks, no manual wiring needed.
+### Option A: Standalone clone
 
 ```bash
 mkdir -p ~/.pi
 git clone git@github.com:vchavkov82/pi-config ~/.pi/agent
-```
-
-### 3. Run setup
-
-Installs packages and extension dependencies:
-
-```bash
 cd ~/.pi/agent && ./setup.sh
 ```
 
-### 4. Add your API keys
+### Option B: Via [brain](https://github.com/vchavkov82/brain) repo (recommended)
 
-Create or edit `~/.pi/agent/auth.json`:
+pi-config is tracked as a git submodule at `.agents/pi-config`. On a new machine:
+
+```bash
+git clone --recurse-submodules git@github.com:vchavkov82/brain ~/.config/brain
+brain setup   # symlinks ~/.pi/agent -> .agents/pi-config
+cd ~/.pi/agent && ./setup.sh
+```
+
+### What `setup.sh` does
+
+1. Installs `pi` globally (`npm install -g @mariozechner/pi-coding-agent`) if missing
+2. Seeds a default `settings.json` if none exists
+3. Installs all pi packages (subagents, extensions, tools)
+4. Installs extension npm dependencies
+5. Warns if `auth.json` is missing
+
+### Add your API keys
+
+Create `~/.pi/agent/auth.json`:
 
 ```json
 {
@@ -40,9 +45,9 @@ Create or edit `~/.pi/agent/auth.json`:
 }
 ```
 
-`auth.json` is listed in `.gitignore` and will not be committed.
+`auth.json` is gitignored and will not be committed.
 
-### 5. Restart pi
+### Restart pi
 
 Pick up all config changes by restarting pi.
 
