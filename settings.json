@@ -1,10 +1,6 @@
 {
   "lastChangelogVersion": "0.67.68",
-<<<<<<< Updated upstream
-  "defaultProvider": "anthropic",
-=======
   "defaultProvider": "claude-code",
->>>>>>> Stashed changes
   "defaultModel": "claude-sonnet-4-6",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
