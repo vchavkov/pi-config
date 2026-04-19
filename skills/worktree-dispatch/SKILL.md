@@ -7,9 +7,15 @@ description: Full git worktree lifecycle for Cursor agent task dispatch. Creates
 
 Manages the full lifecycle of a cursor-agent task in an isolated git worktree:
 
-**create worktree → write brief → launch worker → answer questions → verify → merge → clean up**
+**create worktree → write brief → launch worker → check status → verify → merge → clean up**
 
 Use `cursor-dispatch` instead when the worktree already exists.
+
+## Execution model
+
+cursor-agent runs **headless** (`--print --force`) inside a cmux surface and exits when done.
+The monitor phase is **not a blocking loop** — pi checks status once per call, reports, then waits
+for the user or itself to trigger the next check. This keeps pi responsive throughout.
 
 ## When NOT to Use
 
@@ -101,7 +107,8 @@ Constraints:
 - Run the project's verify command before committing
 - Commit with: `feat: <task title>`
 - Write `STATUS: complete` at the top of TASK.md when done
-- Write `QUESTION: <text>` in the Questions section if blocked — the orchestrator will answer
+- Write `STATUS: blocked` and `QUESTION: <text>` in the Questions section if stuck — then stop.
+  The orchestrator will answer and re-run you.
 ```
 
 If the project already has `.cursor/rules/` files on main, copy them into `.worktrees/<slug>/.cursor/rules/` alongside `task.mdc` (copy, not symlink — branches must be self-contained).
@@ -110,72 +117,81 @@ If the project already has `.cursor/rules/` files on main, copy them into `.work
 
 ## Phase 3: Launch
 
-Open a cmux surface and start cursor-agent inside the worktree:
+Open a cmux surface and start cursor-agent inside the worktree. cursor-agent runs headlessly
+and **exits when done** — success (STATUS: complete) or blocked (STATUS: blocked + QUESTION).
 
 ```bash
 SURFACE=$(cmux new-surface --type terminal | awk '{print $2}')
 sleep 0.5
 
 WORKTREE_PATH="$(git rev-parse --show-toplevel)/.worktrees/<slug>"
-cmux send --surface $SURFACE "cd $WORKTREE_PATH && cursor-agent -p 'Read .tasks/TASK.md and implement it. Write STATUS: complete when done.' --force\n"
+PROMPT="Read .tasks/TASK.md and implement it completely. Write STATUS: complete at the top when done. If stuck, write STATUS: blocked and QUESTION: <text> in the Questions section, then stop."
+
+cmux send --surface $SURFACE "cd $WORKTREE_PATH && cursor-agent --print --force \"$PROMPT\"\n"
 ```
 
-Verify startup within 15 seconds:
+Read initial output after ~5 seconds to confirm startup:
 
 ```bash
-for i in $(seq 1 15); do
-  OUT=$(cmux read-screen --surface $SURFACE --lines 30)
-  echo "$OUT" | grep -qi "reading\|task\|implement" && { echo "Worker started"; break; }
-  sleep 1
-done
+sleep 5
+cmux read-screen --surface $SURFACE --lines 20
 ```
 
-Record `$SURFACE` — needed for monitoring, nudging, and cleanup.
+Record `$SURFACE` and `$WORKTREE_PATH` — needed for checks and cleanup.
 
 ---
 
-## Phase 4: Monitor
+## Phase 4: Check
 
-Poll every 30 seconds. Read the task brief directly from the worktree file.
+**This phase is a single call, not a loop.** Run it once, report the result, then either
+proceed or wait for the next trigger (user asks "check status", or schedule a re-check).
 
 ```bash
-TASK_FILE=".worktrees/<slug>/.tasks/TASK.md"
-
-while true; do
-  TASK=$(cat "$TASK_FILE")
-
-  # Completion check
-  echo "$TASK" | grep -q "^STATUS: complete" && break
-  echo "$TASK" | grep -q "^STATUS: blocked"  && { escalate_to_user; break; }
-
-  # Question check — handled below
-  sleep 30
-done
+TASK=$(cat "$WORKTREE_PATH/.tasks/TASK.md")
+SURFACE_OUT=$(cmux read-screen --surface $SURFACE --scrollback --lines 80)
 ```
 
-### Answering Questions
+### STATUS: complete
 
-A `QUESTION:` line is **unanswered** if the line immediately following it is not `ANSWER:`.
+cursor-agent finished. Proceed to Phase 5 (Verify).
 
-For each unanswered question:
+### STATUS: blocked
 
-1. Read the full TASK.md, the referenced files, and relevant codebase context
+cursor-agent stopped and left a question. Find unanswered `QUESTION:` lines
+(a line starting with `QUESTION:` not immediately followed by `ANSWER:`):
+
+1. Read the full TASK.md and relevant codebase context
 2. Formulate a concrete answer — no hedging, no "it depends"
-3. Edit TASK.md: insert `ANSWER: <text>` on the line immediately after the `QUESTION:` line
-4. Nudge cursor-agent to re-read by sending a newline to the surface:
-   ```bash
-   cmux send --surface $SURFACE "\n"
-   ```
-
-### Timeout
-
-If no `STATUS:` marker appears within 30 minutes and no new `QUESTION:` lines have appeared, read the surface for errors:
+3. Edit TASK.md: insert `ANSWER: <text>` immediately after the `QUESTION:` line
+4. Remove the `STATUS: blocked` line from TASK.md
+5. Re-run cursor-agent in the same surface with a resume prompt:
 
 ```bash
-cmux read-screen --surface $SURFACE --lines 50 --scrollback
+RESUME="Read .tasks/TASK.md again — I answered your question in the Questions section. Continue implementing."
+cmux send --surface $SURFACE "cursor-agent --print --force \"$RESUME\"\n"
 ```
 
-Show the output to the user and wait for direction.
+Then re-enter Phase 4 on the next check trigger.
+
+### Still running (no STATUS line yet)
+
+cursor-agent is still working. Show the last lines of surface output to the user:
+
+```bash
+echo "$SURFACE_OUT" | tail -30
+```
+
+Report: "Still running — trigger another check when ready." Do not block waiting.
+
+### Surface shows shell prompt, no STATUS
+
+cursor-agent exited without writing a STATUS line — likely an error. Read scrollback:
+
+```bash
+cmux read-screen --surface $SURFACE --scrollback --lines 200
+```
+
+Show the full output to the user and escalate.
 
 ---
 
@@ -184,15 +200,15 @@ Show the output to the user and wait for direction.
 Run inside the worktree, **not** the repo root:
 
 ```bash
-cd .worktrees/<slug>
+cd "$WORKTREE_PATH"
 <verify_cmd>    # e.g.: mise run test && mise run lint
 ```
 
 If verification fails:
 
 - **Fixable** (formatting, lint): fix in the worktree and re-verify
-- **Test failure**: append a `## Failure` section to TASK.md with the full failure output, resume monitoring so cursor-agent can fix it
-- After 3 failed verify cycles: show the failure to the user and do not merge
+- **Test failure**: append a `## Failure` section to TASK.md with the error output, then re-launch cursor-agent as in the Q&A resume flow above with prompt: "Fix the failing tests — details in the Failure section of TASK.md."
+- After 3 failed verify cycles: show output to user, do not merge
 
 Do not proceed to Phase 6 until verification is clean.
 
@@ -222,7 +238,7 @@ Run this regardless of how the workflow ended — done, blocked, or error.
 
 ```bash
 # Remove the worktree
-git worktree remove .worktrees/<slug> --force
+git worktree remove "$WORKTREE_PATH" --force
 
 # Delete the task branch (only if merge succeeded)
 git branch -d cursor/<slug>
@@ -241,7 +257,8 @@ If the merge did not happen (blocked or error path), delete the branch **only af
 |-----------|--------|
 | cursor-agent fails to start | Read surface output, show error to user, run Phase 7 cleanup |
 | `STATUS: blocked` with no QUESTION | Ask user for direction; treat as manual intervention required |
+| cursor-agent exits silently (no STATUS) | Read full scrollback, show to user, escalate |
 | Verify fails after 3 retries | Show failure output to user, do not merge, run Phase 7 cleanup |
 | Merge conflict | Stop, show conflicting files, wait for user resolution, then continue |
-| cmux surface dies unexpectedly | Re-launch cursor-agent in a new surface pointing to the same worktree |
-| Worker diverges from main (rebase needed) | `cd .worktrees/<slug> && git rebase main`, then re-verify before merge |
+| cmux surface dies unexpectedly | Re-launch cursor-agent in a new surface with `--print --force "<resume prompt>"` |
+| Worker diverges from main (rebase needed) | `cd "$WORKTREE_PATH" && git rebase main`, then re-verify before merge |
