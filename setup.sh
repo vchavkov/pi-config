@@ -37,19 +37,20 @@ if [[ ! -f "$SCRIPT_DIR/settings.json" ]]; then
   "defaultModel": "claude-opus-4-6",
   "defaultThinkingLevel": "medium",
   "packages": [
-    "git:github.com/nicobailon/pi-mcp-adapter",
+    "../_pi/packages/pi-mcp-adapter",
     {
-      "source": "git:github.com/HazAT/pi-smart-sessions",
+      "source": "../_pi/packages/pi-smart-sessions",
       "extensions": ["+extensions/smart-sessions.ts"]
     },
     {
-      "source": "git:github.com/HazAT/pi-parallel",
+      "source": "../_pi/packages/pi-parallel",
       "extensions": ["+extension/index.ts"]
     },
-    "git:github.com/pasky/chrome-cdp-skill",
-    "git:github.com/HazAT/glimpse",
-    "git:github.com/HazAT/pi-interactive-subagents",
-    "git:github.com/HazAT/pi-autoresearch"
+    "../_pi/packages/pi-diff-review",
+    "../_pi/packages/chrome-cdp-skill",
+    "../_pi/packages/glimpse",
+    "../_pi/packages/pi-interactive-subagents",
+    "../_pi/packages/pi-autoresearch"
   ],
   "hideThinkingBlock": false,
   "extensions": [
@@ -65,13 +66,14 @@ fi
 # ── 3. Install pi packages ──────────────────────────────────────────
 echo "Installing pi packages..."
 PACKAGES=(
-  git:github.com/nicobailon/pi-mcp-adapter
-  git:github.com/HazAT/pi-smart-sessions
-  git:github.com/HazAT/pi-parallel
-  git:github.com/pasky/chrome-cdp-skill
-  git:github.com/HazAT/glimpse
-  git:github.com/HazAT/pi-interactive-subagents
-  git:github.com/HazAT/pi-autoresearch
+  ../_pi/packages/pi-mcp-adapter
+  ../_pi/packages/pi-smart-sessions
+  ../_pi/packages/pi-parallel
+  ../_pi/packages/pi-diff-review
+  ../_pi/packages/chrome-cdp-skill
+  ../_pi/packages/glimpse
+  ../_pi/packages/pi-interactive-subagents
+  ../_pi/packages/pi-autoresearch
 )
 for pkg in "${PACKAGES[@]}"; do
   pi install "$pkg" 2>/dev/null || echo "  ${pkg##*/} — already installed or failed"

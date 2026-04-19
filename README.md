@@ -162,15 +162,18 @@ Loaded on-demand when the context matches.
 
 ## Packages
 
-Installed via `pi install`, managed in `settings.json`.
+Installed via `pi install`, managed in `settings.json`. In this repo, external Pi packages are checked in as git submodules under `.agents/_pi/packages/` and loaded via local relative paths from `~/.pi/agent/settings.json`.
 
 | Package | Description |
 |---------|-------------|
-| [pi-interactive-subagents](https://github.com/HazAT/pi-interactive-subagents) | Subagent tools + agent definitions + `/plan`, `/subagent`, `/iterate` commands |
-| [pi-parallel](https://github.com/HazAT/pi-parallel) | Parallel web search, extract, research, and enrich tools |
-| [pi-smart-sessions](https://github.com/HazAT/pi-smart-sessions) | AI-generated session names |
-| [pi-diff-review](https://github.com/badlogic/pi-diff-review) | Interactive diff review UI |
-| [chrome-cdp-skill](https://github.com/pasky/chrome-cdp-skill) | Chrome DevTools Protocol CLI for visual testing |
+| `../_pi/packages/pi-interactive-subagents` | Submodule for subagent tools + agent definitions + `/plan`, `/subagent`, `/iterate` commands |
+| `../_pi/packages/pi-parallel` | Submodule for parallel web search, extract, research, and enrich tools |
+| `../_pi/packages/pi-smart-sessions` | Submodule for AI-generated session names |
+| `../_pi/packages/pi-diff-review` | Submodule for interactive diff review UI |
+| `../_pi/packages/chrome-cdp-skill` | Submodule for Chrome DevTools Protocol CLI visual testing |
+| `../_pi/packages/pi-mcp-adapter` | Submodule for MCP adapter integration |
+| `../_pi/packages/glimpse` | Submodule for Glimpse UI support |
+| `../_pi/packages/pi-autoresearch` | Submodule for autoresearch workflows |
 
 ---
 
