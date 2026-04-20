@@ -1,10 +1,10 @@
 {
   "lastChangelogVersion": "0.67.68",
-  "defaultProvider": "anthropic",
-  "defaultModel": "claude-haiku-4-5",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.4",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
-    "claude-haiku-4-5",
+    "claude-haiku-latest",
     "claude-sonnet-4-6",
     "claude-opus-4-6",
     "openai-codex/gpt-5.3-codex",

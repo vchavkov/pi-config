@@ -33,11 +33,11 @@ if [[ ! -f "$SCRIPT_DIR/settings.json" ]]; then
   echo "Creating default settings.json..."
   cat > "$SCRIPT_DIR/settings.json" << 'SETTINGS'
 {
-  "defaultProvider": "claude-code",
+  "defaultProvider": "bosch-anthropic",
   "defaultModel": "claude-sonnet-4-6",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
-    "claude-haiku-4-5",
+    "claude-haiku-latest",
     "claude-sonnet-4-6",
     "claude-opus-4-6",
     "openai-codex/gpt-5.3-codex",

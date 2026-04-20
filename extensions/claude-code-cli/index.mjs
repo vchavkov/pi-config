@@ -3,8 +3,8 @@ import { streamViaClaudeCode } from '/home/vchavkov/.local/share/mise/installs/n
 
 const MODELS = [
   {
-    id: 'claude-haiku-4-5',
-    name: 'Claude Haiku 4.5 (via Claude Code)',
+    id: 'claude-haiku-latest',
+    name: 'Claude Haiku Latest (via Claude Code)',
     reasoning: false,
     input: ['text', 'image'],
     cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
