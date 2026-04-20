@@ -35,7 +35,7 @@ function firstDefined(keys) {
   return undefined;
 }
 
-function registerVertexAnthropicProvider(pi, { provider, modelPrefix, label, baseUrlKeys, apiKeyKeys }) {
+function registerVertexAnthropicProvider(pi, { provider, label, baseUrlKeys, apiKeyKeys }) {
   const baseUrlKey = firstDefined(baseUrlKeys);
   const apiKeyKey = firstDefined(apiKeyKeys);
 
@@ -47,7 +47,7 @@ function registerVertexAnthropicProvider(pi, { provider, modelPrefix, label, bas
     authHeader: true,
     api: 'anthropic-messages',
     models: BASE_MODELS.map((model) => ({
-      id: `${modelPrefix}-${model.slug}`,
+      id: model.slug,
       name: `${label} ${model.title}`,
       reasoning: model.reasoning,
       input: model.input,
@@ -61,7 +61,6 @@ function registerVertexAnthropicProvider(pi, { provider, modelPrefix, label, bas
 export default function vertexAnthropicProviders(pi) {
   registerVertexAnthropicProvider(pi, {
     provider: 'bosch-anthropic',
-    modelPrefix: 'bosch',
     label: 'Bosch',
     baseUrlKeys: [
       'BOSCH_ANTHROPIC_BASE_URL',
@@ -78,7 +77,6 @@ export default function vertexAnthropicProviders(pi) {
 
   registerVertexAnthropicProvider(pi, {
     provider: 'sap-anthropic',
-    modelPrefix: 'sap',
     label: 'SAP',
     baseUrlKeys: [
       'SAP_ANTHROPIC_BASE_URL',

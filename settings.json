@@ -1,18 +1,12 @@
 {
   "lastChangelogVersion": "0.67.68",
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.4",
+  "defaultProvider": "claude-code",
+  "defaultModel": "claude-haiku-4-5",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
-    "claude-code/claude-haiku-4-5",
-    "claude-code/claude-sonnet-4-6",
-    "claude-code/claude-opus-4-6",
-    "bosch-anthropic/bosch-claude-haiku-4-5",
-    "bosch-anthropic/bosch-claude-sonnet-4-6",
-    "bosch-anthropic/bosch-claude-opus-4-6",
-    "sap-anthropic/sap-claude-haiku-4-5",
-    "sap-anthropic/sap-claude-sonnet-4-6",
-    "sap-anthropic/sap-claude-opus-4-6",
+    "claude-haiku-4-5",
+    "claude-sonnet-4-6",
+    "claude-opus-4-6",
     "openai-codex/gpt-5.3-codex",
     "openai-codex/gpt-5.4",
     "openai-codex/gpt-5.4-mini"

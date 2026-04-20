@@ -60,12 +60,12 @@ Supported environment variables:
 
 Those providers expose these scoped models:
 
-- `bosch-anthropic/bosch-claude-haiku-4-5`
-- `bosch-anthropic/bosch-claude-sonnet-4-6`
-- `bosch-anthropic/bosch-claude-opus-4-6`
-- `sap-anthropic/sap-claude-haiku-4-5`
-- `sap-anthropic/sap-claude-sonnet-4-6`
-- `sap-anthropic/sap-claude-opus-4-6`
+- `bosch-anthropic/claude-haiku-4-5`
+- `bosch-anthropic/claude-sonnet-4-6`
+- `bosch-anthropic/claude-opus-4-6`
+- `sap-anthropic/claude-haiku-4-5`
+- `sap-anthropic/claude-sonnet-4-6`
+- `sap-anthropic/claude-opus-4-6`
 
 `auth.json` is gitignored and will not be committed.
 
