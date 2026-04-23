@@ -13,6 +13,11 @@
     "openai-codex/gpt-5.4",
     "openai-codex/gpt-5.3-codex"
   ],
+  "disabledModels": [
+    "google-ai/*",
+    "vertex/*",
+    "gemini*"
+  ],
   "packages": [
     "../_pi/packages/pi-smart-sessions",
     "../_pi/packages/chrome-cdp-skill",
