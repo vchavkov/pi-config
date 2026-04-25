@@ -1,35 +1,22 @@
-import { isClaudeCodeReady } from '/home/vchavkov/.local/lib/node_modules/gsd-pi/dist/resources/extensions/claude-code-cli/readiness.js';
-import { streamViaClaudeCode } from '/home/vchavkov/.local/lib/node_modules/gsd-pi/dist/resources/extensions/claude-code-cli/stream-adapter.js';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const MODELS = [
-  {
-    id: 'haiku',
-    name: 'Claude Haiku (via Claude Code)',
-    reasoning: false,
-    input: ['text', 'image'],
-    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-    contextWindow: 1_000_000,
-    maxTokens: 64_000,
-  },
-  {
-    id: 'claude-sonnet-4-6',
-    name: 'Claude Sonnet 4.6 (via Claude Code)',
-    reasoning: true,
-    input: ['text', 'image'],
-    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-    contextWindow: 1_000_000,
-    maxTokens: 64_000,
-  },
-  {
-    id: 'claude-opus-4-6',
-    name: 'Claude Opus 4.6 (via Claude Code)',
-    reasoning: true,
-    input: ['text', 'image'],
-    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-    contextWindow: 1_000_000,
-    maxTokens: 128_000,
-  },
-];
+const claudeCodeCliDir = path.join(
+  path.dirname(path.dirname(process.execPath)),
+  'lib',
+  'node_modules',
+  'gsd-pi',
+  'dist',
+  'resources',
+  'extensions',
+  'claude-code-cli',
+);
+
+const [{ isClaudeCodeReady }, { streamViaClaudeCode }, { CLAUDE_CODE_MODELS }] = await Promise.all([
+  import(pathToFileURL(path.join(claudeCodeCliDir, 'readiness.js')).href),
+  import(pathToFileURL(path.join(claudeCodeCliDir, 'stream-adapter.js')).href),
+  import(pathToFileURL(path.join(claudeCodeCliDir, 'models.js')).href),
+]);
 
 export default function claudeCodeCli(pi) {
   pi.registerProvider('claude-code', {
@@ -38,6 +25,6 @@ export default function claudeCodeCli(pi) {
     baseUrl: 'local://claude-code',
     isReady: isClaudeCodeReady,
     streamSimple: streamViaClaudeCode,
-    models: MODELS,
+    models: CLAUDE_CODE_MODELS,
   });
 }
