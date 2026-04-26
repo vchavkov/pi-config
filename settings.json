@@ -1,7 +1,12 @@
 {
   "lastChangelogVersion": "0.70.2",
+<<<<<<< Updated upstream
   "defaultProvider": "anthropic",
   "defaultModel": "claude-sonnet-4-6",
+=======
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.4",
+>>>>>>> Stashed changes
   "defaultThinkingLevel": "medium",
   "packages": [
     "git:github.com/vchavkov82/pi-smart-sessions",
