@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.70.2",
   "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-4-6",
+  "defaultModel": "claude-sonnet-4-6",
   "defaultThinkingLevel": "medium",
   "packages": [
     "git:github.com/vchavkov82/pi-smart-sessions",
