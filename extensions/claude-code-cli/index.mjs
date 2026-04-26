@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -25,6 +25,29 @@ const streamAdapterModule = await import(pathToFileURL(resolveHelperPath('stream
 
 const { isClaudeCodeReady } = readinessModule;
 const { streamViaClaudeCode } = streamAdapterModule;
+
+function applyEnvFile(filePath) {
+  if (!existsSync(filePath)) return;
+
+  const content = readFileSync(filePath, 'utf8');
+  for (const line of content.split(/\r?\n/)) {
+    const exportMatch = line.match(/^\s*export\s+([A-Z0-9_]+)=(['"]?)(.*?)\2\s*$/);
+    if (exportMatch) {
+      process.env[exportMatch[1]] = exportMatch[3];
+      continue;
+    }
+
+    const unsetMatch = line.match(/^\s*unset\s+([A-Z0-9_]+)\s*$/);
+    if (unsetMatch) {
+      delete process.env[unsetMatch[1]];
+    }
+  }
+}
+
+function streamViaBoschClaudeCode(model, context, options) {
+  applyEnvFile(resolve(process.env.HOME ?? '', '.zsh', 'zsh-aliases-claude-bosch'));
+  return streamViaClaudeCode(model, context, options);
+}
 
 const MODELS = [
   {
@@ -56,7 +79,37 @@ const MODELS = [
   },
 ];
 
+const BOSCH_MODELS = [
+  {
+    id: 'claude-sonnet-4@20250514',
+    name: 'Claude Sonnet 4 20250514 (Bosch via Claude Code)',
+    reasoning: false,
+    input: ['text', 'image'],
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 1_000_000,
+    maxTokens: 64_000,
+  },
+  {
+    id: 'claude-3-5-haiku@20241022',
+    name: 'Claude 3.5 Haiku 20241022 (Bosch via Claude Code)',
+    reasoning: false,
+    input: ['text', 'image'],
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 200_000,
+    maxTokens: 8_192,
+  },
+];
+
 export default function claudeCodeCli(pi) {
+  pi.registerProvider('bosch-claude-code', {
+    apiKey: 'cli',
+    api: 'anthropic-messages',
+    baseUrl: 'local://claude-code/bosch',
+    isReady: isClaudeCodeReady,
+    streamSimple: streamViaBoschClaudeCode,
+    models: BOSCH_MODELS,
+  });
+
   pi.registerProvider('claude-code', {
     apiKey: 'cli',
     api: 'anthropic-messages',
