@@ -4,14 +4,14 @@
   "defaultModel": "claude-opus-4-6",
   "defaultThinkingLevel": "medium",
   "packages": [
-    "git:github.com/HazAT/pi-smart-sessions",
+    "git:github.com/vchavkov82/pi-smart-sessions",
     "git:github.com/pasky/chrome-cdp-skill",
-    "git:github.com/HazAT/pi-interactive-subagents",
-    "git:github.com/HazAT/pi-parallel",
+    "git:github.com/vchavkov82/pi-interactive-subagents",
+    "git:github.com/vchavkov82/pi-parallel",
     "git:github.com/badlogic/pi-diff-review",
     "git:github.com/nicobailon/pi-mcp-adapter",
     "git:github.com/HazAT/glimpse",
-    "git:github.com/HazAT/pi-autoresearch"
+    "git:github.com/vchavkov82/pi-autoresearch"
   ],
   "hideThinkingBlock": false,
   "extensions": [
