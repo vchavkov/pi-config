@@ -1,32 +1,17 @@
 {
   "lastChangelogVersion": "0.70.2",
   "defaultProvider": "anthropic",
-  "defaultModel": "claude-haiku-4-5",
+  "defaultModel": "claude-opus-4-6",
   "defaultThinkingLevel": "medium",
-  "enabledModels": [
-    "openai-codex/gpt-5.5",
-    "openai-codex/gpt-5.4",
-    "openai-codex/gpt-5.4-mini",
-    "claude-opus-4-6",
-    "claude-sonnet-4-6",
-    "claude-haiku-4-5"
-  ],
-  "disabledModels": [
-    "google-ai/*",
-    "vertex/*",
-    "gemini*"
-  ],
   "packages": [
-    "../_pi/packages/pi-smart-sessions",
-    "../_pi/packages/chrome-cdp-skill",
-    "-../_pi/packages/glimpse",
-    "../_pi/packages/pi-interactive-subagents",
-    "-../_pi/packages/pi-autoresearch",
-    "../_pi/packages/pi-parallel",
-    "../_pi/packages/pi-diff-review",
-    "../_pi/packages/pi-mcp-adapter",
-    "../_pi/packages/glimpse",
-    "../_pi/packages/pi-autoresearch"
+    "git:github.com/HazAT/pi-smart-sessions",
+    "git:github.com/pasky/chrome-cdp-skill",
+    "git:github.com/HazAT/pi-interactive-subagents",
+    "git:github.com/HazAT/pi-parallel",
+    "git:github.com/badlogic/pi-diff-review",
+    "git:github.com/nicobailon/pi-mcp-adapter",
+    "git:github.com/HazAT/glimpse",
+    "git:github.com/HazAT/pi-autoresearch"
   ],
   "hideThinkingBlock": false,
   "extensions": [

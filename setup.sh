@@ -2,11 +2,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-AGENT_DIR="$HOME/.pi/agent"
+EXPECTED_DIR="$HOME/.pi/agent"
 
-# ── Preflight ────────────────────────────────────────────────────────
 # Accept either a direct clone at ~/.pi/agent or a symlink pointing here
-RESOLVED_AGENT="$(readlink -f "$AGENT_DIR" 2>/dev/null || true)"
+RESOLVED_AGENT="$(readlink -f "$EXPECTED_DIR" 2>/dev/null || true)"
 RESOLVED_SELF="$(readlink -f "$SCRIPT_DIR")"
 
 if [[ "$RESOLVED_AGENT" != "$RESOLVED_SELF" ]]; then
@@ -14,93 +13,64 @@ if [[ "$RESOLVED_AGENT" != "$RESOLVED_SELF" ]]; then
   echo "   Expected: $RESOLVED_SELF"
   echo "   Got:      ${RESOLVED_AGENT:-(does not exist)}"
   echo ""
-  echo "   Fix: ln -s $SCRIPT_DIR $AGENT_DIR"
-  echo "   Or:  brain setup"
+  echo "   Fix: ln -s $SCRIPT_DIR $EXPECTED_DIR"
   exit 1
 fi
 
-echo "==> pi-config setup ($SCRIPT_DIR)"
+echo "Setting up pi-config at $EXPECTED_DIR"
+echo ""
 
-# ── 1. Check pi is available ─────────────────────────────────────────
-if ! command -v pi &>/dev/null; then
-  echo "⚠️  pi not found — install it first (npm install -g @mariozechner/pi-coding-agent)"
-  exit 1
-fi
-echo "pi $(pi --version 2>/dev/null || echo '?') found"
-
-# ── 2. Seed settings.json (skip if exists) ──────────────────────────
-if [[ ! -f "$SCRIPT_DIR/settings.json" ]]; then
-  echo "Creating default settings.json..."
-  cat > "$SCRIPT_DIR/settings.json" << 'SETTINGS'
+# Create settings.json if it doesn't exist
+if [ ! -f "$EXPECTED_DIR/settings.json" ]; then
+  echo "Creating settings.json..."
+  cat > "$EXPECTED_DIR/settings.json" << 'EOF'
 {
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.4",
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-opus-4-6",
   "defaultThinkingLevel": "medium",
-  "enabledModels": [
-    "claude-haiku-4-5",
-    "claude-sonnet-4-6",
-    "claude-opus-4-6",
-    "claude-haiku-latest",
-    "claude-sonnet-latest",
-    "claude-opus-latest",
-    "openai-codex/gpt-5.3-codex",
-    "openai-codex/gpt-5.4"
-  ],
   "packages": [
-    "../_pi/packages/pi-mcp-adapter",
+    "git:github.com/nicobailon/pi-mcp-adapter",
     {
-      "source": "../_pi/packages/pi-smart-sessions",
-      "extensions": ["+extensions/smart-sessions.ts"]
+      "source": "git:github.com/HazAT/pi-smart-sessions",
+      "extensions": [
+        "+extensions/smart-sessions.ts"
+      ]
     },
     {
-      "source": "../_pi/packages/pi-parallel",
-      "extensions": ["+extension/index.ts"]
+      "source": "git:github.com/HazAT/pi-parallel",
+      "extensions": [
+        "+extension/index.ts"
+      ]
     },
-    "../_pi/packages/pi-diff-review",
-    "../_pi/packages/chrome-cdp-skill",
-    "../_pi/packages/glimpse",
-    "../_pi/packages/pi-interactive-subagents",
-    "../_pi/packages/pi-autoresearch"
+    "git:github.com/pasky/chrome-cdp-skill",
+    "git:github.com/HazAT/glimpse",
+    "git:github.com/HazAT/pi-interactive-subagents",
+    "git:github.com/HazAT/pi-autoresearch",
+    "git:github.com/badlogic/pi-diff-review"
   ],
   "hideThinkingBlock": false,
   "extensions": [
-    "+extensions/cmux/index.ts",
-    "+extensions/claude-tool/index.ts"
+    "+extensions/cmux/index.ts"
   ]
 }
-SETTINGS
+EOF
 else
-  echo "settings.json exists — skipping"
-fi
-
-# ── 3. Install pi packages ──────────────────────────────────────────
-echo "Installing pi packages..."
-PACKAGES=(
-  ../_pi/packages/pi-mcp-adapter
-  ../_pi/packages/pi-smart-sessions
-  ../_pi/packages/pi-parallel
-  ../_pi/packages/pi-diff-review
-  ../_pi/packages/chrome-cdp-skill
-  ../_pi/packages/glimpse
-  ../_pi/packages/pi-interactive-subagents
-  ../_pi/packages/pi-autoresearch
-)
-for pkg in "${PACKAGES[@]}"; do
-  pi install "$pkg" 2>/dev/null || echo "  ${pkg##*/} — already installed or failed"
-done
-
-# ── 4. Extension dependencies ───────────────────────────────────────
-if [[ -f "$SCRIPT_DIR/extensions/claude-tool/package.json" ]]; then
-  echo "Installing claude-tool extension deps..."
-  (cd "$SCRIPT_DIR/extensions/claude-tool" && npm install --silent)
-fi
-
-# ── 5. Auth check ───────────────────────────────────────────────────
-if [[ ! -f "$SCRIPT_DIR/auth.json" ]]; then
+  echo "settings.json already exists — skipping creation"
   echo ""
-  echo "⚠️  No auth.json found — create $SCRIPT_DIR/auth.json with your API keys:"
-  echo '  { "anthropic": "sk-ant-...", "openai-codex": { "type": "oauth", ... } }'
 fi
 
+# Install packages
+echo "Installing packages..."
+pi install git:github.com/nicobailon/pi-mcp-adapter 2>/dev/null || echo "  pi-mcp-adapter already installed"
+pi install git:github.com/HazAT/pi-smart-sessions 2>/dev/null || echo "  pi-smart-sessions already installed"
+pi install git:github.com/HazAT/pi-parallel 2>/dev/null || echo "  pi-parallel already installed"
+pi install git:github.com/pasky/chrome-cdp-skill 2>/dev/null || echo "  chrome-cdp-skill already installed"
+pi install git:github.com/HazAT/glimpse 2>/dev/null || echo "  glimpse already installed"
+pi install git:github.com/HazAT/pi-interactive-subagents 2>/dev/null || echo "  pi-interactive-subagents already installed"
+pi install git:github.com/HazAT/pi-autoresearch 2>/dev/null || echo "  pi-autoresearch already installed"
+pi install git:github.com/badlogic/pi-diff-review 2>/dev/null || echo "  pi-diff-review already installed"
 echo ""
-echo "✅ Done — restart pi to pick up changes."
+
+echo "✅ Setup complete!"
+echo ""
+echo "Restart pi to pick up all changes."
