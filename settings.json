@@ -4,6 +4,7 @@
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
+    "openai-codex/gpt-5.5",
     "claude-opus-4-6",
     "claude-sonnet-4-6",
     "claude-haiku-4-5",
@@ -13,7 +14,6 @@
     "sap-anthropic/anthropic--claude-4.6-sonnet",
     "sap-anthropic/anthropic--claude-4.6-opus",
     "sap-anthropic/anthropic--claude-4.5-haiku",
-    "openai-codex/gpt-5.5",
     "openai-codex/gpt-5.4",
     "openai-codex/gpt-5.4-mini",
     "sap-openai/gpt-5",
