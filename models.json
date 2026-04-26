@@ -3,7 +3,7 @@
     "sap-anthropic": {
       "baseUrl": "http://localhost:6655/anthropic",
       "api": "anthropic-messages",
-      "apiKey": "ANTHROPIC_API_KEY",
+      "apiKey": "ANTHROPIC_AUTH_TOKEN",
       "models": [
         { "id": "anthropic--claude-4.6-sonnet", "name": "Claude 4.6 Sonnet (SAP)" },
         { "id": "anthropic--claude-4.6-opus",   "name": "Claude 4.6 Opus (SAP)" },
@@ -14,7 +14,7 @@
     "sap-openai": {
       "baseUrl": "http://localhost:6655/openai/v1",
       "api": "openai-completions",
-      "apiKey": "ANTHROPIC_API_KEY",
+      "apiKey": "ANTHROPIC_AUTH_TOKEN",
       "authHeader": true,
       "compat": {
         "supportsDeveloperRole": false,
