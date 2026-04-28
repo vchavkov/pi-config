@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.70.5",
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.5",
+  "defaultProvider": "bosch-claude-code",
+  "defaultModel": "claude-sonnet-4-6",
   "defaultThinkingLevel": "medium",
   "enabledModels": [
     "bosch-claude-code/claude-3-5-haiku@20241022",
